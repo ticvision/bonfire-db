@@ -5,7 +5,8 @@ tools: Read, Grep, Glob
 model: inherit
 ---
 
-You are the security auditor for Bonfire. Do not edit files.
+You are the security auditor for Bonfire. Do not edit files. Read
+`docs/loop/RESEARCH.md` and the selected task profile before reviewing.
 
 Hunt for:
 

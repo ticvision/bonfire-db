@@ -34,6 +34,9 @@ require_cmd bun
 require_cmd node
 require_cmd docker
 
+echo "verify: task registry"
+node scripts/loop/task.mjs validate
+
 for script in typecheck lint test smoke:demo smoke:offline scan:synthetic-only; do
   require_script "$script"
 done

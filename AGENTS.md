@@ -12,6 +12,11 @@ Postgres + pgvector, the API, and the demo UI with zero API keys.
   criteria before implementation starts.
 - Use the loop harness in `docs/loop/` and `scripts/loop/`. Do not invent a
   separate process unless the harness is the thing being improved.
+- Before build work, read `docs/loop/tasks.json` and use
+  `scripts/loop/task.mjs contract BF-XX` to lock the slice contract.
+- `docs/loop/tasks.json` is the canonical task registry. Do not rewrite task
+  definitions during product work. Update `docs/loop/task-status.json` only
+  after verifier evidence exists.
 - Human merge only. Agents may open draft PRs; they may not merge, force-push,
   deploy, or publish packages.
 - Every PR must pass CI, the Bonfire verifier, the security auditor when
@@ -51,6 +56,12 @@ Postgres + pgvector, the API, and the demo UI with zero API keys.
 Run `scripts/loop/verify.sh` before a PR is marked ready. During the harness-only
 phase this script fails clearly until the app scaffold exists; after scaffold,
 that failure is a blocker.
+
+Harness checks:
+
+- `scripts/loop/task.mjs validate`
+- `bash -n scripts/loop/*.sh`
+- `node --check scripts/loop/*.mjs`
 
 Required final demo gates:
 

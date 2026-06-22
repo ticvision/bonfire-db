@@ -24,6 +24,15 @@ MAX BUDGET USD:
 The maker only works inside `ALLOWED FILES`. The verifier fails the slice if
 acceptance is vague, missing, or not objectively testable.
 
+Task contracts are generated from `docs/loop/tasks.json`:
+
+```bash
+scripts/loop/task.mjs contract BF-XX
+```
+
+The task registry is source-of-truth. The mutable pass/fail state is
+`docs/loop/task-status.json`.
+
 ## Harness Skeleton Gate
 
 - `AGENTS.md` exists and defines autonomy, safety, stack, and merge rules.
@@ -31,9 +40,29 @@ acceptance is vague, missing, or not objectively testable.
 - Codex and Claude Code maker/checker/security agents exist.
 - `scripts/loop/create-worktree.sh`, `verify.sh`, `ledger.mjs`, and
   `greptile-gate.mjs` exist.
+- `scripts/loop/task.mjs`, `docs/loop/tasks.json`, and
+  `docs/loop/task-status.json` exist.
+- `scripts/loop/task.mjs validate` passes.
 - `scripts/loop/verify.sh` fails clearly before the app scaffold exists.
 - CI can syntax-check harness scripts.
 - No scheduled automation is enabled yet.
+
+## Profile-Specific Gates
+
+The registry assigns each task a profile. Verifiers must apply the matching
+gate:
+
+- `foundation`: install, typecheck, Docker boot, health smoke.
+- `data`: migrations, idempotent seed, synthetic-only scan.
+- `security`: negative ABAC tests, audit immutability, tamper detection.
+- `contract`: SDK/API schema parity, trusted validation, typed 4xx errors.
+- `retrieval`: golden queries, citations, exact baseline, no silent fallback.
+- `ui`: Playwright user flow and desktop/mobile screenshot checks.
+- `ui-security`: UI flow plus security auditor log/PHI checks.
+- `agent-safety`: propose-only invariant and agent-approve denial.
+- `fhir`: R4 document Bundle invariants and reference integrity.
+- `mcp`: fixed local tool allowlist and tool-poisoning tests.
+- `docs-release`: quickstart replay and claim audit.
 
 ## Demo MVP Gate
 

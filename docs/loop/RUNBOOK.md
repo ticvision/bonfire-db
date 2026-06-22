@@ -20,16 +20,23 @@ scripts/loop/ledger.mjs add --key harness-001 --source manual --sev med \
 
 Default once one manual slice works.
 
-1. Pick one item from `docs/loop/STATE.md`.
-2. Create a worktree with `scripts/loop/create-worktree.sh <slice>`.
-3. Run a maker agent against the slice contract.
-4. Run `scripts/loop/verify.sh`.
-5. Run the Bonfire verifier agent.
-6. Run the security auditor when the slice touches data, authz, audit, FHIR,
+1. Run `scripts/loop/task.mjs next`.
+2. Run `scripts/loop/task.mjs contract BF-XX` and paste that contract into the
+   maker prompt.
+3. Mark the task active:
+   `scripts/loop/task.mjs status BF-XX active --branch loop/BF-XX`.
+4. Create a worktree with `scripts/loop/create-worktree.sh BF-XX`.
+5. Run a maker agent against the slice contract.
+6. Run the task's verify commands, then `scripts/loop/verify.sh` once scaffold
+   exists.
+7. Run the Bonfire verifier agent.
+8. Run the security auditor when the slice touches data, authz, audit, FHIR,
    MCP, logging, or hosted playground code.
-7. Open a draft PR.
-8. Iterate on CI, verifier findings, security findings, and Greptile until
+9. Open a draft PR.
+10. Iterate on CI, verifier findings, security findings, and Greptile until
    Greptile reports `5/5`.
+11. Mark the task `passed` only after human review confirms the PR is merged or
+    intentionally accepted.
 
 ### 3. Scheduled Triage
 
@@ -38,17 +45,30 @@ implement without an explicit human-triggered slice contract.
 
 ## Slice Order
 
-1. Harness skeleton and CI.
-2. Bun workspace, Docker compose, Postgres + pgvector boot.
-3. Schema, migrations, seed, synthetic-only scanner.
-4. ABAC gate and hash-chained audit.
-5. Cited semantic search.
-6. Demo UI search beat.
-7. Denial and audit UI beat.
-8. Propose-only note.
-9. FHIR export/import.
-10. Local MCP tools.
-11. README, GIF, docs, hosted read-only playground.
+The canonical slice order lives in `docs/loop/tasks.json`. For a human-readable
+view, read `docs/loop/TASKS.md` or run:
+
+```bash
+scripts/loop/task.mjs list
+```
+
+Do not skip ahead unless the skipped task is explicitly marked `blocked` in
+`task-status.json` with a note explaining why.
+
+## Session Start Checklist
+
+Every maker/checker session starts with:
+
+```bash
+pwd
+git log --oneline -5
+scripts/loop/task.mjs validate
+scripts/loop/task.mjs list
+scripts/loop/task.mjs next
+```
+
+Then read only the relevant task contract and impacted files. Keep context
+small; avoid loading the entire repo into the model.
 
 ## Stop Conditions
 
@@ -59,6 +79,8 @@ Stop and report instead of continuing when:
 - The task needs a product decision not covered by the slice contract.
 - A security auditor returns `BLOCKING`.
 - Greptile cannot be read from GitHub after the PR is ready for review.
+- A task requires files outside its `allowedPaths`; stop and update the task
+  contract in a separate harness PR.
 
 ## Merge Contract
 

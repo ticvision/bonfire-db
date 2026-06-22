@@ -25,6 +25,9 @@ jobs:
         run: |
           node --check scripts/loop/ledger.mjs
           node --check scripts/loop/greptile-gate.mjs
+          node --check scripts/loop/task.mjs
+      - name: Validate task registry
+        run: node scripts/loop/task.mjs validate
 
   verify:
     name: Bonfire verify
