@@ -6,6 +6,7 @@ import {
   evaluateChecks,
   extractFailureSnippets,
   formatCheck,
+  isPendingLogError,
   normalizeCheckBucket,
 } from "./ci-watch.mjs";
 
@@ -88,4 +89,12 @@ test("formatCheck includes workflow, state, and link", () => {
     }),
     "Loop CI / Bonfire verify: SUCCESS (https://example.test/job)",
   );
+});
+
+test("isPendingLogError detects GitHub Actions log availability races", () => {
+  assert.equal(
+    isPendingLogError(new Error("run 123 is still in progress; logs will be available when it is complete")),
+    true,
+  );
+  assert.equal(isPendingLogError(new Error("HTTP 404")), false);
 });

@@ -132,9 +132,10 @@ summaries that do not match the current PR head or merge SHA.
 Harness-authored trigger comments are marked and ignored as review output, so
 `@greptileai` trigger comments cannot mask a missing scored Greptile summary.
 
-CI runs the trigger with `--trigger-required true`, so a GitHub permission error
-while posting the bot-command comment fails immediately instead of waiting for
-the full poll window.
+CI attempts the configured trigger before polling. Set
+`GREPTILE_TRIGGER_REQUIRED=true` only when a real trigger URL, trigger token, or
+comment-capable token is configured; otherwise the gate should continue polling
+for normal Greptile app output after a trigger failure.
 
 If the organization blocks write permissions for the default `GITHUB_TOKEN`, set
 `GREPTILE_GH_TOKEN` to a fine-grained token that can read pull requests/checks

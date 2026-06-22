@@ -154,6 +154,10 @@ function ghText(args) {
   }
 }
 
+export function isPendingLogError(error) {
+  return /still in progress|logs will be available/i.test(String(error?.message || error));
+}
+
 function fetchChecks({ repo, pr }) {
   return ghJson([
     "pr",
@@ -240,6 +244,7 @@ async function run() {
     if (outcome.status === "fail") {
       console.error(`ci-watch: FAIL - ${outcome.message}`);
       printChecks(checks);
+      const pendingLogs = [];
 
       for (const check of outcome.failing) {
         console.error(`ci-watch: failure ${formatCheck(check)}`);
@@ -254,8 +259,22 @@ async function run() {
             for (const line of snippets) console.error(line);
           }
         } catch (error) {
+          if (isPendingLogError(error)) {
+            pendingLogs.push(check);
+            console.error(`ci-watch: log for ${check.name} is not available yet`);
+            continue;
+          }
           console.error(`ci-watch: could not fetch log for ${check.name}: ${error.message}`);
         }
+      }
+
+      const elapsedMs = Date.now() - startedAt;
+      if (pendingLogs.length > 0 && waitSeconds > 0 && elapsedMs < waitSeconds * 1000) {
+        const remainingMs = Math.max(0, waitSeconds * 1000 - elapsedMs);
+        const waitMs = Math.min(pollSeconds * 1000, remainingMs);
+        console.log(`ci-watch: waiting ${Math.ceil(waitMs / 1000)}s for failed job logs (attempt ${attempt})`);
+        await delay(waitMs);
+        continue;
       }
 
       return 1;

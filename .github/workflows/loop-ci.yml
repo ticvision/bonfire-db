@@ -60,4 +60,4 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Require Greptile score
-        run: node scripts/loop/greptile-gate.mjs --trigger --trigger-required true --wait-seconds 900 --poll-seconds 30
+        run: node scripts/loop/greptile-gate.mjs --trigger --wait-seconds 900 --poll-seconds 30

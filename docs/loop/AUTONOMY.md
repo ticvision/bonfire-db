@@ -124,9 +124,11 @@ old `5/5` review from passing a newer commit.
 Harness-authored trigger comments include an idempotency marker and are ignored
 as review candidates, even though they mention `@greptileai`.
 
-CI uses `--trigger-required true` so a GitHub permission error while posting the
-bot-command comment fails immediately with setup evidence instead of burning the
-full wait window.
+CI attempts the Greptile trigger before polling. Keep
+`GREPTILE_TRIGGER_REQUIRED=false` unless the repo has a working
+`GREPTILE_TRIGGER_URL` or a comment-capable `GREPTILE_GH_TOKEN`; otherwise a
+default `GITHUB_TOKEN` comment failure should not prevent polling for normal
+Greptile app output.
 
 When org policy blocks write permissions for the default `GITHUB_TOKEN`,
 configure `GREPTILE_GH_TOKEN` with a fine-grained token that can read
