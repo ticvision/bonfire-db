@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@bonfire/core": "workspace:*"
+    "@bonfire/core": "workspace:*",
+    "fastify": "^5.0.0"
   },
   "devDependencies": {
     "tsx": "^4.19.0"

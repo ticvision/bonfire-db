@@ -31,6 +31,7 @@ Recommended persistent approvals for this repo:
 - `bun install`, `bun run`, and `bun test`
 - `docker info` and `docker compose`
 - `gh` for repo, PR, check, and workflow inspection
+- `node scripts/loop/ci-watch.mjs`
 - `git -C`, `git fetch`, `git pull`, `git push`, `git add`, and `git commit`
 - `curl -fsS` for localhost smoke checks
 - `scripts/loop/verify.sh`
@@ -70,6 +71,17 @@ Every new failure class should leave one of:
 - a verifier check that catches it locally,
 - a bounded retry with useful diagnostics,
 - or a runbook entry explaining the human action required.
+
+After pushing a branch with an open PR, run:
+
+```bash
+node scripts/loop/ci-watch.mjs --repo ticvision/bonfire-db --pr 1 --wait-seconds 1800 --poll-seconds 30
+```
+
+The watcher polls `gh pr checks`, fails fast on red checks, and extracts
+relevant GitHub Actions log snippets. Use those snippets as the next root-cause
+investigation input, then repair and push again until CI is green or a stop
+condition is reached.
 
 ## Greptile Gate Behavior
 

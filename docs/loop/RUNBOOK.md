@@ -91,6 +91,17 @@ Harness changes are allowed when they are tied to a concrete failure and add
 one of: a local verifier check, a bounded retry, or a runbook entry for the
 human action.
 
+After every push to an open PR, watch CI instead of waiting manually:
+
+```bash
+node scripts/loop/ci-watch.mjs --repo ticvision/bonfire-db --pr 1 --wait-seconds 1800 --poll-seconds 30
+```
+
+If a check fails, the watcher prints the failed check names, job links, and
+relevant GitHub Actions log lines. Treat that output as the next investigation
+input, fix the root cause, push, and rerun the watcher until all checks pass or
+a stop condition applies.
+
 ## External Reviewer Gates
 
 Greptile is asynchronous. The loop gate must wait for review output before

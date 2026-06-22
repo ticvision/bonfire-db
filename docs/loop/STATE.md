@@ -28,6 +28,7 @@ _last run: never_
 
 | date | key | attempt | failure | next action |
 |------|-----|---------|---------|-------------|
+| 2026-06-22 | BF-01-ci-greptile-score | 4 | Latest CI run 27972158797 passed Harness syntax and Bonfire verify but failed Greptile 5/5 gate after Greptile scored commit 9b4b3fa at 3/5 for scaffold and harness defects. | Fix the review findings and add a CI watcher that polls PR checks and extracts failing GitHub Actions log snippets for the next repair loop. |
 | 2026-06-22 | BF-01-ci-greptile-pending | 1 | Greptile 5/5 gate failed immediately because no Greptile PR comment, review, or check output existed yet; Bonfire verify and harness syntax passed. | Add bounded Greptile polling, inspect both PR merge and head SHAs, and run harness tests locally/CI. |
 | 2026-06-22 | BF-01-ci-greptile-draft | 2 | Greptile app is installed for all ticvision repos, but PR #1 is draft; waiting for final review output on a draft PR is the wrong gate behavior. | Skip Greptile CI for draft PRs and rerun the strict 5/5 gate on ready_for_review. |
 | 2026-06-22 | BF-01-ci-greptile-trigger | 3 | Greptile was enabled for bonfire-db after the PR existed; fresh synchronize and failed-job rerun still produced no GitHub-visible Greptile artifact. | Add opt-in URL/comment trigger hooks to the Greptile gate so ready PRs can request review before polling. |

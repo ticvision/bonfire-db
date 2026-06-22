@@ -131,6 +131,9 @@ Bonfire implementation:
 - Ready PRs call an opt-in Greptile trigger hook before polling. The hook can
   POST to a configured URL or post a configured bot-command comment once per
   head SHA.
+- `scripts/loop/ci-watch.mjs` polls PR checks after each push and extracts
+  relevant GitHub Actions failure lines so the next repair loop starts from
+  concrete evidence.
 - The gate has unit tests covering pass, sub-5 failure, no output, incomplete
   output, check-run body extraction, SHA selection, and trigger payload/comment
   rendering.

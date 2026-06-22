@@ -68,6 +68,44 @@ test("evaluateGreptile treats Greptile output without a score as incomplete", ()
   assert.equal(outcome.status, "incomplete");
 });
 
+test("evaluateGreptile uses the latest scored candidate", () => {
+  const outcome = evaluateGreptile([
+    {
+      createdAt: "2026-06-22T00:00:00Z",
+      body: "Greptile score: 5/5",
+      source: "review",
+    },
+    {
+      createdAt: "2026-06-22T00:01:00Z",
+      body: "Greptile review follow-up with no score",
+      source: "comment",
+    },
+  ]);
+
+  assert.equal(outcome.status, "pass");
+  assert.equal(outcome.score, 5);
+  assert.equal(outcome.source, "review");
+});
+
+test("evaluateGreptile fails on the newest scored candidate", () => {
+  const outcome = evaluateGreptile([
+    {
+      createdAt: "2026-06-22T00:00:00Z",
+      body: "Greptile score: 5/5",
+      source: "old-review",
+    },
+    {
+      createdAt: "2026-06-22T00:01:00Z",
+      body: "Greptile score: 3/5",
+      source: "new-review",
+    },
+  ]);
+
+  assert.equal(outcome.status, "fail");
+  assert.equal(outcome.score, 3);
+  assert.equal(outcome.source, "new-review");
+});
+
 test("bodiesFrom includes Greptile check run output title, summary, and text", () => {
   const bodies = bodiesFrom([
     {

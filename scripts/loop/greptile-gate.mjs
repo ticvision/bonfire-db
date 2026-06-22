@@ -108,17 +108,24 @@ export function evaluateGreptile(candidates) {
     };
   }
 
-  const latest = candidates[candidates.length - 1];
-  const scores = extractScores(latest.body);
+  const scoredCandidates = candidates
+    .map((candidate) => ({
+      candidate,
+      scores: extractScores(candidate.body),
+    }))
+    .filter((item) => item.scores.length > 0);
 
-  if (scores.length === 0) {
+  if (scoredCandidates.length === 0) {
+    const latest = candidates[candidates.length - 1];
     return {
       status: "incomplete",
-      message: "latest Greptile output did not contain a N/5 score",
+      message: "no Greptile output contained a N/5 score",
       source: latest.source,
     };
   }
 
+  const latest = scoredCandidates[scoredCandidates.length - 1].candidate;
+  const scores = scoredCandidates[scoredCandidates.length - 1].scores;
   const score = scores[scores.length - 1];
   if (score !== 5) {
     return {
