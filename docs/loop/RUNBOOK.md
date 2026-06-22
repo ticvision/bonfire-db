@@ -118,6 +118,15 @@ Configure one Greptile trigger path when Greptile exposes it:
 When a Greptile summary says which commit it reviewed, the gate rejects stale
 summaries that do not match the current PR head or merge SHA.
 
+CI runs the trigger with `--trigger-required true`, so a GitHub permission error
+while posting the bot-command comment fails immediately instead of waiting for
+the full poll window.
+
+If the organization blocks write permissions for the default `GITHUB_TOKEN`, set
+`GREPTILE_GH_TOKEN` to a fine-grained token that can read pull requests/checks
+and write PR comments for this repository. The workflow uses that secret when it
+exists and falls back to `github.token` otherwise.
+
 If no Greptile output is visible after the wait, treat it as a blocked external
 review setup problem, not a BF task implementation failure.
 

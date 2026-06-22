@@ -51,7 +51,7 @@ jobs:
       issues: write
       checks: read
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.GREPTILE_GH_TOKEN || github.token }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       GREPTILE_TRIGGER_URL: ${{ secrets.GREPTILE_TRIGGER_URL }}
       GREPTILE_TRIGGER_TOKEN: ${{ secrets.GREPTILE_TRIGGER_TOKEN }}
@@ -60,4 +60,4 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Require Greptile score
-        run: node scripts/loop/greptile-gate.mjs --trigger --wait-seconds 900 --poll-seconds 30
+        run: node scripts/loop/greptile-gate.mjs --trigger --trigger-required true --wait-seconds 900 --poll-seconds 30

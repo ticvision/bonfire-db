@@ -109,6 +109,14 @@ When a Greptile summary includes a reviewed commit link, the gate only accepts
 that summary if it matches the current PR head or merge SHA. This prevents an
 old `5/5` review from passing a newer commit.
 
+CI uses `--trigger-required true` so a GitHub permission error while posting the
+bot-command comment fails immediately with setup evidence instead of burning the
+full wait window.
+
+When org policy blocks write permissions for the default `GITHUB_TOKEN`,
+configure `GREPTILE_GH_TOKEN` with a fine-grained token that can read
+pull requests/checks and write PR comments for this repository.
+
 Local dry run with diagnostics:
 
 ```bash
