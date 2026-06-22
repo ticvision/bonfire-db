@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-22T13:58:35.676Z",
+  "updatedAt": "2026-06-22T17:40:03.239Z",
   "tasks": [
     {
       "id": "BF-01",
-      "status": "review",
+      "status": "passed",
       "attempts": 0,
       "branch": "loop/BF-01",
       "pr": "https://github.com/ticvision/bonfire-db/pull/1",
-      "greptile": null,
-      "notes": "Bonfire verifier PASS locally: task gates and scripts/loop/verify.sh passed after Docker Desktop restart. Draft PR opened."
+      "greptile": "5/5",
+      "notes": "CI PASS: Harness syntax, Bonfire verify, and Greptile 5/5 gate passed on run 27971746770. Local scripts/loop/verify.sh passed with Docker boot and smoke checks."
     },
     {
       "id": "BF-02",
