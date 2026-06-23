@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T13:03:37.187Z",
+  "updatedAt": "2026-06-23T13:06:23.595Z",
   "tasks": [
     {
       "id": "BF-01",
@@ -25,9 +25,9 @@
       "status": "active",
       "attempts": 1,
       "branch": "loop/BF-03",
-      "pr": null,
+      "pr": "https://github.com/coralehr/bonfire-db/pull/3",
       "greptile": null,
-      "notes": "Local PASS: BF-03 contract updated to include package.json and drizzle migrations; ABAC/audit tests passed; smoke:policy passed from fresh Postgres volume; scripts/loop/verify.sh passed; focused security audit found no blocking issues."
+      "notes": "PR opened after local PASS: ABAC/audit tests, smoke:policy from fresh Postgres volume, scripts/loop/verify.sh, synthetic scan, and focused security audit."
     },
     {
       "id": "BF-04",
