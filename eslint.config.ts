@@ -232,5 +232,17 @@ export default defineConfig(
     name: "bonfire/no-console-in-product",
     files: ["packages/**/*.{ts,tsx,mts,cts}"],
     rules: { "no-console": "error" }
+  },
+  {
+    // Declarative, schema-validated DATA registries are exempt from logic
+    // line-count limits: max-lines targets logic god-files, but the slice
+    // registry's real gates are the Zod schema + registry tests + human review,
+    // not a line count. Splitting static data would add ceremony, not safety.
+    name: "bonfire/data-registries",
+    files: ["**/contracts/tasks.ts", "**/contracts/tasks/**/*.ts"],
+    rules: {
+      "max-lines": "off",
+      "ai-guardrails/max-file-lines": "off"
+    }
   }
 );

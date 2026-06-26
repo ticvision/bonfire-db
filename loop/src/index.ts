@@ -1,4 +1,4 @@
-/** Public surface of the `@bonfire/loop` harness package (placeholder). */
+/** Public surface of the `@bonfire/loop` harness package. */
 
 export const LOOP_PACKAGE = "@bonfire/loop" as const;
 
@@ -12,3 +12,5 @@ export interface LoopManifest {
 export function loopManifest(version: string): LoopManifest {
   return { name: LOOP_PACKAGE, version };
 }
+
+export * from "./contracts/index.js";
