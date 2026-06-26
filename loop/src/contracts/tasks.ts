@@ -1,6 +1,9 @@
-// The BF-01..BF-12 slice registry. Human-authored data (loop-harness-plan.md H1:
-// no prose auto-parsing). Drafted from docs/plans/mvp-demo-plan.md (v2) and
-// reviewed against it; validated at load by sliceContractSchema in registry.ts.
+// The BF-01..BF-12 slice registry. Human-authored data (loop-harness-plan.md
+// H1: no prose auto-parsing). Drafted from docs/plans/mvp-demo-plan.md (v2),
+// reconciled to its canonical layout (packages/{core,sdk,mcp}, apps/{api,demo},
+// drizzle/, seed/) and reviewed against it. The secrets/real-data/gates/harness
+// floor is global (allowed-paths.ts GLOBAL_FORBIDDEN_PATHS); forbiddenPaths here
+// holds only slice-specific extras. Validated at load by registry.ts.
 import type { SliceContract } from "./slice-contract.js";
 
 export const tasks: readonly SliceContract[] = [
@@ -15,8 +18,8 @@ export const tasks: readonly SliceContract[] = [
     allowedPaths: [
       "docker-compose.yml",
       "docker/**",
-      "apps/server/**",
-      "packages/db/**",
+      "apps/api/**",
+      "packages/core/**",
       "drizzle/**",
       "seed/**",
       ".env.example",
@@ -25,26 +28,7 @@ export const tasks: readonly SliceContract[] = [
       "turbo.json",
       "tsconfig.json"
     ],
-    forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "loop/**",
-      "tsconfig.base.json",
-      "eslint.config.ts",
-      "biome.json",
-      ".dependency-cruiser.cjs",
-      "knip.json",
-      ".jscpd.json",
-      "semgrep.yml",
-      "sgconfig.yml",
-      "sgrules/**",
-      "sgrule-tests/**",
-      ".gitleaks.toml",
-      "packages/fhir/**",
-      "LICENSE"
-    ],
+    forbiddenPaths: ["sgrule-tests/**", "packages/fhir/**", "LICENSE"],
     acceptance: [
       "`docker compose config -q` is valid and `docker compose up -d --wait` exits 0 on a clean clone using only `.env.example` defaults \u2014 no API keys and no manual secret entry required to boot.",
       "The Postgres service reports server major version 18 (`SHOW server_version_num` returns a value >= 180000).",
@@ -62,8 +46,8 @@ export const tasks: readonly SliceContract[] = [
       "docker compose config -q",
       "docker compose up -d --wait",
       "bun run db:migrate",
-      "bun test packages/db",
-      "bun test apps/server",
+      "bun test packages/core",
+      "bun test apps/api",
       "curl -fsS http://localhost:8080/health | grep -q '\"ok\":true'",
       "bun run gate",
       "docker compose down -v"
@@ -103,15 +87,9 @@ export const tasks: readonly SliceContract[] = [
       "bun.lock"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "loop/**",
       "apps/**",
       "packages/sdk/**",
       "packages/mcp/**",
-      ".github/workflows/**",
       "docker-compose.yml",
       "docs/plans/**"
     ],
@@ -130,8 +108,6 @@ export const tasks: readonly SliceContract[] = [
       "docker compose up -d",
       "bun install --frozen-lockfile",
       "bun run db:migrate",
-      "bun run db:migrate",
-      "bun run seed",
       "bun run seed",
       "bun run scan:synthetic",
       "bun test packages/core",
@@ -176,18 +152,7 @@ export const tasks: readonly SliceContract[] = [
       "docs/adr/**",
       "docs/loss-ledger.md"
     ],
-    forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "drizzle/**",
-      "loop/**",
-      "packages/sdk/**",
-      "packages/mcp/**",
-      "apps/**",
-      ".github/workflows/**"
-    ],
+    forbiddenPaths: ["drizzle/**", "packages/sdk/**", "packages/mcp/**", "apps/**"],
     acceptance: [
       "A typed write primitive exists for each of the documented scribe resources (~8: Patient, Encounter, Condition, Observation, MedicationRequest, AllergyIntolerance, Procedure, DocumentReference), each with an explicit Zod input schema and an explicit return type, returning a Result discriminated union { ok:true; data } | { ok:false; error } at the public boundary (no any/@ts-ignore/eslint-disable).",
       "Each primitive maps its typed input to a FHIR R4 resource conforming to the corresponding US Core 6.1.0 profile, and the canonical FHIR JSON (not the typed input) is what is persisted to fhir_resources \u2014 FHIR R4 is the source of truth.",
@@ -214,7 +179,7 @@ export const tasks: readonly SliceContract[] = [
       "eval/write-atomicity: a forced mid-transaction failure leaves zero rows in fhir_resources, history, and write_inputs (no partial or dual write).",
       "eval/write-inputs-replay: re-deriving FHIR from a stored write_inputs row reproduces the canonical FHIR persisted at write time."
     ],
-    dangerChecks: ["lossy-fhir", "fake-conformance"],
+    dangerChecks: ["lossy-fhir", "fake-conformance", "cross-tenant-leak"],
     caps: {
       maxAttempts: 3,
       maxTurns: 75,
@@ -233,21 +198,14 @@ export const tasks: readonly SliceContract[] = [
     dependsOn: ["BF-01", "BF-02", "BF-03"],
     allowedPaths: [
       "packages/sql-on-fhir/**",
-      "packages/db/migrations/**",
-      "packages/db/src/schema/**",
+      "packages/core/migrations/**",
+      "packages/core/src/schema/**",
       "fixtures/sql-on-fhir/**",
       "tests/sql-on-fhir/**",
-      "docs/adr/**"
+      "docs/adr/**",
+      "drizzle/**"
     ],
-    forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "loop/**",
-      ".github/workflows/**",
-      "packages/db/src/schema/fhir-resources.ts"
-    ],
+    forbiddenPaths: ["packages/core/src/schema/fhir-resources.ts"],
     acceptance: [
       "The official HL7 sql-on-fhir v2 conformance suite is vendored under fixtures/sql-on-fhir/ with its upstream version/commit pinned and recorded; a `bun run conformance` task executes every case, prints total/passed/failed/skipped counts, and exits non-zero on any unexpected failure.",
       "The runner passes 100% of the conformance cases it claims to support; every intentionally unsupported case is in an explicit declared allowlist with a written reason (no silent skips) and the unsupported count is printed.",
@@ -291,23 +249,8 @@ export const tasks: readonly SliceContract[] = [
     goal: "Build the read-path security primitives: an ABAC policy decision that is default-deny and emits a structured policy receipt on every allow AND deny, computed from request scope BEFORE any target row is retrieved; plus an append-only, hash-chained (prev_hash + row_hash) tamper-evident audit log with a verification routine that detects any mutation, reordering, insertion, or deletion and exposes each row_hash for downstream citation linkage.",
     why: "Retrofitting authorization and audit is how PHI leaks and how tampering goes unnoticed. Scope-before-retrieve plus default-deny prevents the scope-after-retrieve leak class, and a verifiable prev_hash/row_hash chain makes the audit trail trustworthy enough to anchor CCP span citations and satisfy HIPAA 45 CFR 164.312 audit-controls and integrity. These are primitives consumed by cited search (BF-06), CCP (BF-07), and governance (BF-09), so they must be correct and fail-closed from row zero.",
     dependsOn: ["BF-01", "BF-02"],
-    allowedPaths: ["packages/security/**", "drizzle/**", "docker-compose.yml"],
-    forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      ".github/**",
-      "semgrep.yml",
-      "sgrules/**",
-      "sgrule-tests/**",
-      "eslint.config.ts",
-      "biome.json",
-      ".gitleaks.toml",
-      "docs/loop/**",
-      "loop/**",
-      "packages/fhir/**"
-    ],
+    allowedPaths: ["packages/core/**", "drizzle/**", "docker-compose.yml"],
+    forbiddenPaths: ["sgrule-tests/**", "docs/loop/**", "packages/fhir/**"],
     acceptance: [
       "The ABAC decision function returns a structured policy receipt for BOTH allow and deny outcomes; the receipt is a typed object containing at least: decision ('allow' | 'deny'), actor/subject id, resource type, practice_id, matched rule id (or null), human-readable reason, and an ISO-8601 timestamp.",
       "DEFAULT-DENY is enforced: any request with no matching allow rule, a missing/invalid/unparseable policy input, or an evaluation error resolves to 'deny' with a receipt; a negative test asserts an unrecognized actor and an empty/garbage scope each yield deny (never throw-to-allow, never undefined-as-allow).",
@@ -325,7 +268,7 @@ export const tasks: readonly SliceContract[] = [
       "bun install",
       "bun run typecheck",
       "bun run lint",
-      "bun test packages/security/",
+      "bun test packages/core/",
       "bun run gate"
     ],
     evals: [
@@ -337,7 +280,7 @@ export const tasks: readonly SliceContract[] = [
       "audit-no-read-without-receipt: every policy-gated read (allow OR deny) emits exactly one audit row",
       "audit-rls-fail-closed: a cross-practice_id read of audit rows returns zero rows"
     ],
-    dangerChecks: ["scope-after-retrieve", "fail-open-authz", "audit-bypass"],
+    dangerChecks: ["scope-after-retrieve", "fail-open-authz", "audit-bypass", "cross-tenant-leak"],
     caps: {
       maxAttempts: 3,
       maxTurns: 75,
@@ -362,18 +305,13 @@ export const tasks: readonly SliceContract[] = [
       "loop/evals/retrieval/**"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
       "packages/core/src/abac/**",
       "packages/core/src/policy/**",
       "packages/core/src/audit/**",
       "packages/core/src/write/**",
       "packages/core/src/fhir/**",
       "loop/contracts/**",
-      "loop/gates/**",
-      ".github/workflows/**"
+      "loop/gates/**"
     ],
     acceptance: [
       "A `searchClinical` lexical (tsvector) read primitive is exported from `packages/core` with an explicit return type `Promise<Result<SearchResponse, BonfireError>>`; no `any`, no `as` casts, no `@ts-ignore`/eslint-disable; input and output are parsed by Zod 4 schemas at the boundary.",
@@ -424,10 +362,6 @@ export const tasks: readonly SliceContract[] = [
       "docs/adr/**"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
       "seed/**",
       "drizzle/**",
       "packages/core/src/fhir/**",
@@ -437,11 +371,7 @@ export const tasks: readonly SliceContract[] = [
       "loop/cli/**",
       "loop/gates/**",
       "loop/contracts/**",
-      "loop/verify/**",
-      ".github/**",
-      "eslint.config.ts",
-      "tsconfig.base.json",
-      "biome.json"
+      "loop/verify/**"
     ],
     acceptance: [
       "The public `buildCcp` (or equivalent) entry in packages/core/src/ccp returns a Result discriminated union (ok | err) at the boundary: malformed or out-of-scope input yields an `err` variant and never throws; only programmer-error paths throw (CQ2 idiom).",
@@ -487,16 +417,11 @@ export const tasks: readonly SliceContract[] = [
       "tsconfig.json"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
       "seed/**",
       "packages/core/**",
       "apps/**",
       "loop/gates/**",
-      "loop/contracts/**",
-      ".github/workflows/**"
+      "loop/contracts/**"
     ],
     acceptance: [
       "`bun run --filter @bonfire/sdk gen` regenerates the typed SDK from the type-schema IR and is idempotent: running it then `git diff --exit-code -- packages/sdk/src/generated` reports no changes, proving the SDK is generated and not hand-edited.",
@@ -557,18 +482,10 @@ export const tasks: readonly SliceContract[] = [
       "loop/evals/governance/**"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
       "packages/core/src/audit/**",
       "packages/core/src/abac/**",
       "packages/core/src/fhir/**",
-      ".github/workflows/**",
-      "loop/gates/**",
-      "eslint.config.ts",
-      "semgrep.yml",
-      "sgrules/**"
+      "loop/gates/**"
     ],
     acceptance: [
       "A governance state machine defines explicit states proposed -> approved -> committed plus denied/rejected; a transition test exercises every edge and rejects every illegal transition (e.g. proposed -> committed without approved) with a typed error, so a proposal can never reach committed without passing through approved.",
@@ -614,7 +531,7 @@ export const tasks: readonly SliceContract[] = [
     profile: "fhir",
     goal: "Add a single-call FHIR R4 document-Bundle export (Composition is the first entry, every reference resolves to a fullUrl inside the same Bundle) and a bring-your-own-bundle FHIR import path, with an idempotent export -> import -> export round-trip that is validated against the HL7 FHIR validator and guarded by the loss-ledger.",
     why: "Existing-FHIR teams need a zero-friction way to get data out (1-call document export) and in (BYO-bundle import) so Bonfire interops with the wider FHIR ecosystem. An idempotent, validator-checked, tenant-isolated round-trip is the concrete proof that the canonical store is truly lossless and RLS-safe \u2014 the credibility the open-source, agent-native positioning depends on.",
-    dependsOn: ["BF-01", "BF-02", "BF-03"],
+    dependsOn: ["BF-01", "BF-02", "BF-03", "BF-05", "BF-08"],
     allowedPaths: [
       "packages/core/src/fhir/export/**",
       "packages/core/src/fhir/import/**",
@@ -625,16 +542,10 @@ export const tasks: readonly SliceContract[] = [
       "docs/adr/**"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
       "drizzle/**",
       "packages/core/src/db/**",
       "packages/core/src/fhir/mapping/**",
-      "packages/mcp/**",
-      "loop/**",
-      ".github/workflows/**"
+      "packages/mcp/**"
     ],
     acceptance: [
       "A single SDK call (and its 1:1 HTTP route) returns a FHIR R4 Bundle whose `type` is `document` and whose FIRST entry resource is a `Composition`.",
@@ -666,7 +577,13 @@ export const tasks: readonly SliceContract[] = [
       "fhir-roundtrip-idempotent: export -> import -> export is byte-stable after normalization and re-import creates no duplicates (lossy-fhir)",
       "fhir-loss-ledger-required: a round-trip field drop with no matching loss-ledger ADR entry fails the gate (lossy-fhir)"
     ],
-    dangerChecks: ["cross-tenant-leak", "lossy-fhir", "fake-conformance"],
+    dangerChecks: [
+      "cross-tenant-leak",
+      "lossy-fhir",
+      "fake-conformance",
+      "audit-bypass",
+      "fail-open-authz"
+    ],
     caps: {
       maxAttempts: 3,
       maxTurns: 70,
@@ -689,18 +606,7 @@ export const tasks: readonly SliceContract[] = [
       "docs/benchmark/**",
       ".github/workflows/btab.yml"
     ],
-    forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "seed/**",
-      "loop/**",
-      "packages/**",
-      "apps/api/**",
-      "apps/demo/**",
-      "drizzle/**"
-    ],
+    forbiddenPaths: ["seed/**", "packages/**", "apps/api/**", "apps/demo/**", "drizzle/**"],
     acceptance: [
       "Exactly three named, selectable context arms are implemented \u2014 (a) raw FHIR (full canonical record), (b) compact JSON (non-cited compact serialization), (c) Bonfire CCP (span-cited projection) \u2014 and a unit test asserts each arm produces serialized context for every fixture query in the golden suite.",
       "A named tokenizer is declared and version-pinned per model; the runner refuses to emit token metrics when the tokenizer is unnamed/unpinned (default-deny), and token counts are computed via that named tokenizer (not a char/word heuristic). RESULTS.md records the tokenizer name + version.",
@@ -777,18 +683,14 @@ export const tasks: readonly SliceContract[] = [
       "turbo.json"
     ],
     forbiddenPaths: [
-      ".env",
-      ".env.*",
-      "fixtures/private/**",
-      "seed/**/real*",
-      "loop/**",
       "packages/core/**",
       "packages/server/**",
       "packages/sdk/**",
       "packages/mcp/**",
       "packages/fhir/**",
       "migrations/**",
-      ".github/workflows/**"
+      "scripts/**/synthetic*",
+      "scripts/**/*scan*"
     ],
     acceptance: [
       "Clean clone: `bun install` then `docker compose up -d --wait` boots the full stack with ZERO API keys (no API key in any required env var); compose healthchecks report healthy and the documented health endpoint returns HTTP 200.",

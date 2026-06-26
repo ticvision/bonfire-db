@@ -5,6 +5,11 @@
  * contract. The schema is the boundary: every field is parsed, not trusted, so a
  * malformed registry entry can never reach the gate pipeline. Shape source of
  * truth: loop-harness-plan.md section 3.3.
+ *
+ * Note on default-deny: the secrets/real-data/gates/harness floor is NOT enforced
+ * per-slice here — it lives in `GLOBAL_FORBIDDEN_PATHS` in allowed-paths.ts and is
+ * applied by the checker to every slice. A slice's `forbiddenPaths` only adds
+ * slice-specific extras on top of that floor.
  */
 import { z } from "zod";
 
@@ -47,18 +52,6 @@ export type RequiredAgent = z.infer<typeof requiredAgentSchema>;
 /** Slice id pattern: `BF-` followed by exactly two digits (BF-01 .. BF-12). */
 export const SLICE_ID_PATTERN = /^BF-\d{2}$/;
 
-/**
- * forbiddenPaths globs every slice MUST carry so secrets and real/private data
- * can never be reached through `allowedPaths`. Enforced by the schema (a machine
- * default-deny invariant, not a prose convention an agent might forget).
- */
-export const MANDATORY_FORBIDDEN_PATHS = [
-  ".env",
-  ".env.*",
-  "fixtures/private/**",
-  "seed/**/real*"
-] as const;
-
 const sliceIdSchema = z.string().regex(SLICE_ID_PATTERN, "must match /^BF-\\d{2}$/");
 
 const nonEmptyString = z.string().min(1);
@@ -68,12 +61,6 @@ const capsSchema = z.strictObject({
   maxTurns: z.number().int().min(1),
   maxBudgetUSD: z.number().positive()
 });
-
-const forbiddenPathsSchema = z
-  .array(nonEmptyString)
-  .refine((paths) => MANDATORY_FORBIDDEN_PATHS.every((required) => paths.includes(required)), {
-    message: `forbiddenPaths must include all of: ${MANDATORY_FORBIDDEN_PATHS.join(", ")}`
-  });
 
 const requiredAgentsSchema = z
   .array(requiredAgentSchema)
@@ -89,10 +76,11 @@ export const sliceContractSchema = z.strictObject({
   why: nonEmptyString,
   dependsOn: z.array(sliceIdSchema),
   allowedPaths: z.array(nonEmptyString).min(1),
-  forbiddenPaths: forbiddenPathsSchema,
+  // Slice-specific extras only; the security floor is global (allowed-paths.ts).
+  forbiddenPaths: z.array(nonEmptyString),
   acceptance: z.array(nonEmptyString).min(1),
   verify: z.array(nonEmptyString).min(1),
-  evals: z.array(z.string()),
+  evals: z.array(nonEmptyString),
   dangerChecks: z.array(dangerCheckSchema),
   caps: capsSchema,
   requiredAgents: requiredAgentsSchema,

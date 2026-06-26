@@ -2,11 +2,12 @@
  * The slice registry: the validated, in-repo catalogue of BF-01..BF-12.
  *
  * The registry data is human-authored in `./tasks` (loop-harness-plan.md H1: no
- * prose auto-parsing of work boundaries). This module is the gatekeeper around
- * it: every entry is parsed with `sliceContractSchema`, ids must be unique and
- * cover exactly BF-01..BF-12, every `dependsOn` must resolve, and the dependency
- * graph must be acyclic. `validateRegistry` reports problems as a `Result`; the
- * accessor functions throw only on a malformed in-repo registry (programmer error).
+ * prose auto-parsing of work boundaries). This module is the gatekeeper around it:
+ * every entry is parsed with `sliceContractSchema`, ids must be unique and cover
+ * exactly BF-01..BF-12, every `dependsOn` must resolve, and the dependency graph
+ * must be acyclic. `validateEntries` is the pure validator (testable with fixtures);
+ * `validateRegistry` runs it over the real `./tasks`. Accessors throw only on a
+ * malformed in-repo registry (programmer error).
  */
 import type { Result } from "./result.js";
 import { err, ok } from "./result.js";
@@ -29,12 +30,12 @@ export interface RegistryIssue {
   readonly message: string;
 }
 
-/** The success payload of `validateRegistry`: the parsed, validated slices. */
+/** The success payload of `validateEntries`: the parsed, validated slices. */
 export interface RegistryValidation {
   readonly slices: readonly SliceContract[];
 }
 
-/** The failure payload of `validateRegistry`: every problem found, at once. */
+/** The failure payload of `validateEntries`: every problem found, at once. */
 export interface RegistryFailure {
   readonly issues: readonly RegistryIssue[];
 }
@@ -46,11 +47,14 @@ function expectedIds(): readonly string[] {
   );
 }
 
-function parseEntries(): { readonly slices: SliceContract[]; readonly issues: RegistryIssue[] } {
+function parseEntries(entries: readonly unknown[]): {
+  readonly slices: SliceContract[];
+  readonly issues: RegistryIssue[];
+} {
   const slices: SliceContract[] = [];
   const issues: RegistryIssue[] = [];
   let index = 0;
-  for (const entry of tasks) {
+  for (const entry of entries) {
     const parsed = sliceContractSchema.safeParse(entry);
     if (parsed.success) {
       slices.push(parsed.data);
@@ -150,11 +154,15 @@ function checkDependencies(slices: readonly SliceContract[]): readonly RegistryI
 }
 
 /**
- * Validate the entire registry, collecting every problem in one pass. Never
- * throws: a malformed registry is reported as a `Result` failure.
+ * Pure registry validator: parse + check arbitrary entries, collecting every
+ * problem in one pass. Never throws. Exported so the failure branches (duplicate /
+ * missing / unexpected id, unknown dependency, cycle, invalid contract) are
+ * directly testable with fixtures rather than only against the real `./tasks`.
  */
-export function validateRegistry(): Result<RegistryValidation, RegistryFailure> {
-  const { slices, issues } = parseEntries();
+export function validateEntries(
+  entries: readonly unknown[]
+): Result<RegistryValidation, RegistryFailure> {
+  const { slices, issues } = parseEntries(entries);
   const allIssues = [
     ...issues,
     ...checkUniqueIds(slices),
@@ -165,6 +173,11 @@ export function validateRegistry(): Result<RegistryValidation, RegistryFailure> 
     return err({ issues: allIssues });
   }
   return ok({ slices });
+}
+
+/** Validate the real in-repo registry (`./tasks`). Never throws. */
+export function validateRegistry(): Result<RegistryValidation, RegistryFailure> {
+  return validateEntries(tasks);
 }
 
 let cache: readonly SliceContract[] | undefined;
