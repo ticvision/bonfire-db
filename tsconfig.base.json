@@ -1,24 +1,32 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "types": ["node"],
+
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": false,
     "resolveJsonModule": true,
-    "jsx": "react-jsx",
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@bonfire/core": ["packages/core/src/index.ts"],
-      "@bonfire/sdk": ["packages/sdk/src/index.ts"],
-      "@bonfire/mcp": ["packages/mcp/src/index.ts"]
-    }
+    "skipLibCheck": true
   }
 }

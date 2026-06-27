@@ -1,0 +1,336 @@
+<h1>bonfireDB — Co-founder Plan</h1>
+
+<p><em>The open-source, agent-native clinical backend. Your health agent reads a cited, governed,
+token-lean view instead of raw FHIR, so it is measurably cheaper and more accurate, and you wrote
+zero FHIR. Updated 2026-06-25 — research-backed rewrite, greenfield, 14-day MVP.</em></p>
+
+<div class="sh-callout success">
+<strong>In one line.</strong> Agents are bad at clinical data (they cap near ~50% accuracy on raw
+FHIR) and clinical agent loops are expensive (a full FHIR record runs to millions of tokens).
+bonfireDB fixes both with one design decision: the agent never reads raw FHIR, it reads a
+<strong>Cited Context Projection</strong> we build from canonical FHIR underneath. We prove it with an
+open benchmark. We win as the <em>nice</em> way to build AI health apps: start with AI scribes, become
+the default backend.
+</div>
+
+<h2 id="glance">At a glance</h2>
+
+<table>
+<tbody>
+<tr><td><strong>What</strong></td><td>Open-source, app-first clinical backend. Clean typed write primitives on top; lossless FHIR R4 underneath; every agent read is cited, governed, and token-lean.</td></tr>
+<tr><td><strong>Who</strong></td><td>Greenfield AI scribe / copilot / care-agent builders (touch ~6-8 FHIR resources). Hedge: teams with existing FHIR, via an import path.</td></tr>
+<tr><td><strong>Why now</strong></td><td>MCP is the standard, agents on raw FHIR cap near ~50%, UIs got trivial. The data + governance layer is the last hard part.</td></tr>
+<tr><td><strong>The wow</strong></td><td><code>docker compose up</code> → write a note in 3 lines → agent answers <em>with FHIR citations</em>, cheaper and more accurate → proposes an action → human approves → wrong clinician denied by policy → tamper-evident audit → 1-call FHIR export. Under 5 minutes, zero API keys.</td></tr>
+<tr><td><strong>The number</strong></td><td>Our own measured benchmark: <em>~Nx fewer tokens per agent query than raw FHIR, equal-or-better accuracy.</em> Published, reproducible, baseline + tokenizer stated. (A design target until BTAB measures it — see <a href="#proof">the proof</a>.)</td></tr>
+<tr><td><strong>The timeline</strong></td><td><strong>10-14 days to a launchable OSS MVP</strong> built with coding agents, plus the published number and a flagship reference app. See <a href="#sprint">the sprint</a>.</td></tr>
+<tr><td><strong>The moat</strong></td><td>Not the token number (every technique is permissively licensed). The integrated, governed, citation-by-construction contract + DX + an open proof, genuinely Apache-2.0 where incumbents paywall at PHI.</td></tr>
+<tr><td><strong>Tagline</strong></td><td><em>the open-source, agent-native Firebase for healthcare.</em></td></tr>
+</tbody>
+</table>
+
+<h2 id="sprint">The 14-day MVP sprint</h2>
+
+<p>Greenfield. We are not migrating anything; the current scaffold is ~20 minutes of agent work and is
+disposable. Coding agents compress the build; what does not compress is human review, the benchmark
+rigor, and design-partner conversations (those run in parallel and continue past day 14). The goal by
+day 14: a clean clone boots, the five-beat wow works, the number is published, and a reference app and
+launch assets are ready.</p>
+
+<div data-sh-app data-sh-state='{
+  "showDone": true,
+  "phases": [
+    "Days 1-2 · Foundation + the spine",
+    "Days 3-5 · Mapping + import (lossless FHIR)",
+    "Days 5-7 · Projection runner + cited search",
+    "Days 7-9 · Cited context + SDK + MCP + governance",
+    "Days 9-11 · BTAB benchmark + publish the number",
+    "Days 11-13 · Reference app + docs + compliance pack",
+    "Days 13-14 · Launch assets"
+  ],
+  "tasks": [
+    {"phase":"Days 1-2 · Foundation + the spine","text":"Monorepo, Docker compose, Postgres 18 + pgvector, one-command boot, zero API keys","done":false},
+    {"phase":"Days 1-2 · Foundation + the spine","text":"Canonical fhir_resources (JSONB, versioned) + history + write_inputs + outbox","done":false},
+    {"phase":"Days 1-2 · Foundation + the spine","text":"practice_id + RLS fail-closed on every row, from row zero; 3 Postgres roles + per-request GUC","done":false},
+    {"phase":"Days 1-2 · Foundation + the spine","text":"Hash-chained tamper-evident audit + ABAC policy receipts (reuse the proven primitives)","done":false},
+    {"phase":"Days 1-2 · Foundation + the spine","text":"Synthetic seed + synthetic-only CI scanner; Apache-2.0, README, SECURITY.md + threat model","done":false},
+    {"phase":"Days 3-5 · Mapping + import (lossless FHIR)","text":"Typed primitive -> lossless FHIR R4 / US Core 6.1.0 for the ~8 scribe resources","done":false},
+    {"phase":"Days 3-5 · Mapping + import (lossless FHIR)","text":"write_inputs replay + golden round-trip fixtures validated against the HL7 validator","done":false},
+    {"phase":"Days 3-5 · Mapping + import (lossless FHIR)","text":"Loss-ledger (a field may be dropped only via an ADR + human sign-off)","done":false},
+    {"phase":"Days 3-5 · Mapping + import (lossless FHIR)","text":"FHIR import path: bring-your-own-bundle, so existing-data builders get value","done":false},
+    {"phase":"Days 5-7 · Projection runner + cited search","text":"SQL-on-FHIR v2 ViewDefinition runner (TS + Postgres, fhirpath.js) -> vd_* projection tables","done":false},
+    {"phase":"Days 5-7 · Projection runner + cited search","text":"Search-param index tables; pass the HL7 sql-on-fhir conformance suite","done":false},
+    {"phase":"Days 5-7 · Projection runner + cited search","text":"Lexical cited search (tsvector), scope-before-retrieve, citations + freshness + policy receipt + audit id","done":false},
+    {"phase":"Days 7-9 · Cited context + SDK + MCP + governance","text":"Cited Context Projection: compact serialization + span citations (resource id + JSONB path + audit hash) + U-shape ordering","done":false},
+    {"phase":"Days 7-9 · Cited context + SDK + MCP + governance","text":"Auto-generated typed TS SDK (type-schema IR) + reactive useClinicalQuery (LISTEN/NOTIFY)","done":false},
+    {"phase":"Days 7-9 · Cited context + SDK + MCP + governance","text":"Local MCP server, narrow typed tool allowlist, no raw SQL/FHIRPath/shell; injection sanitization","done":false},
+    {"phase":"Days 7-9 · Cited context + SDK + MCP + governance","text":"Propose -> approve -> commit; agent cannot approve (audited); committed/signed-note schema","done":false},
+    {"phase":"Days 9-11 · BTAB benchmark + publish the number","text":"BTAB harness: 3 arms (raw FHIR / compact JSON / Bonfire CCP), named tokenizer","done":false},
+    {"phase":"Days 9-11 · BTAB benchmark + publish the number","text":"Metrics: median tokens/query, accuracy, citation precision/recall, accuracy-per-1K-tokens","done":false},
+    {"phase":"Days 9-11 · BTAB benchmark + publish the number","text":"Token delta runs offline with zero keys; accuracy arm on main; publish RESULTS.md openly","done":false},
+    {"phase":"Days 11-13 · Reference app + docs + compliance pack","text":"Flagship open-source AI-scribe reference app built entirely on Bonfire (the onboarding funnel)","done":false},
+    {"phase":"Days 11-13 · Reference app + docs + compliance pack","text":"LLM-consumable docs + 6-line first-query quickstart; npx bonfire init","done":false},
+    {"phase":"Days 11-13 · Reference app + docs + compliance pack","text":"Compliance evidence pack: RLS proofs, policy analysis, audit-chain verification, 164.312 map","done":false},
+    {"phase":"Days 13-14 · Launch assets","text":"60-second demo video + the benchmark post + honest claims/compliance page","done":false},
+    {"phase":"Days 13-14 · Launch assets","text":"Discord, good-first-issues (the SQL-on-FHIR runner + governance), Show HN draft","done":false},
+    {"phase":"Days 13-14 · Launch assets","text":"40 named prospects listed; 10 outreach sent; 3 calls booked; 1 acceptance test defined","done":false}
+  ]
+}'>
+  <div class="sh-callout info">
+    <strong data-sh-text="round(count(tasks where done) / count(tasks) * 100) + '% of the sprint complete'"></strong>
+    <span data-sh-text="' — ' + count(tasks where done) + ' of ' + count(tasks) + ' tasks'"></span>
+    <span data-sh-show="count(tasks where done) == count(tasks)"> — 🎉 MVP shipped!</span>
+  </div>
+  <p><label><input type="checkbox" data-sh-bind="showDone"> Show completed</label></p>
+  <div data-sh-repeat="phases" data-sh-as="p">
+    <details open>
+      <summary>
+        <strong data-sh-text="p"></strong>
+        <span data-sh-text="'  (' + count(tasks where phase == p and done) + '/' + count(tasks where phase == p) + ')'"></span>
+      </summary>
+      <ul data-sh-repeat="tasks where phase == p and (showDone or not done)" data-sh-as="t">
+        <li><input type="checkbox" data-sh-bind="t.done"> <span data-sh-text="t.text"></span></li>
+      </ul>
+    </details>
+  </div>
+</div>
+
+<div class="sh-callout warn">
+<strong>What is honestly NOT in the 14 days.</strong> Hybrid vector search + rerankers + clinical
+embeddings, the MIMIC benchmark, Cedar policy engine, FHIR R6, bulk <code>$export</code>, a terminology
+server, offline sync, remote hosted MCP, and the BYOC managed control plane. Those are post-launch.
+Day 14 ships the deterministic cited-search wow, the open token+accuracy number, and the reference app.
+</div>
+
+<h2 id="thesis">Thesis &amp; why now</h2>
+
+<ul>
+<li><strong>The problem is acute, not a convenience.</strong> Two independent benchmarks cap LLM agents
+at ~42-50% on raw FHIR (FHIR-AgentBench; FHIRPath-QA). Handing an agent raw FHIR query power actually
+<em>lowered</em> accuracy. Input format alone swings accuracy ~16 points (Markdown-KV 60.7% vs JSON
+52.3% vs CSV 44.3%). Naive FHIR-into-context hallucinates like raw text ("Representation Before
+Retrieval", medRxiv 2026).</li>
+<li><strong>Cheaper and more accurate is the same decision.</strong> A clean, cited, typed slice both
+costs fewer tokens and scores higher (CLEAR, npj Digital Medicine 2024: F1 0.90 vs 0.79 at ~70-82%
+fewer tokens). We do not trade cost against quality; we improve both with one move.</li>
+<li><strong>Why greenfield, not migration.</strong> Supabase, Firebase, Convex, and Medplum all won on
+greenfield. Migrating a live team to an unproven backend is a tarpit. Narrow the beachhead (scribes);
+keep the vision big.</li>
+<li><strong>Why a backend, not an app.</strong> The AI-scribe end market is consolidating (Abridge,
+Microsoft/Nuance, Epic native). We do not compete with them; we are the governed data layer the next
+thousand AI-health apps build on.</li>
+</ul>
+
+<h2 id="build">What we build</h2>
+
+<p><strong>Wedge (locked): "Prove it" — cited projection + open benchmark.</strong> One narrow vertical
+slice, one fact-checkable outcome:</p>
+
+<pre><code>typed write  ->  lossless FHIR R4 (canonical JSONB)  ->  Cited Context Projection
+             ->  typed MCP tools  ->  propose-only governance
+             ->  an OPEN, reproducible Token + Accuracy benchmark (BTAB)
+   wrapped in ONE flagship open-source AI-scribe reference app.</code></pre>
+
+<p>The vision stays big: <strong>the default backend for AI-native health apps built after June
+2026.</strong> The MVP is deliberately small: one 5-minute wow, one number nobody else publishes. Two
+ecosystem bets are folded in: a <strong>FHIR-import path</strong> (so existing-data builders get value)
+and a real <strong>SQL-on-FHIR v2 ViewDefinition runner</strong> in TypeScript + Postgres + pgvector,
+which does not exist yet and is the standards-credible contributor magnet.</p>
+
+<h2 id="edge">The honest edge</h2>
+
+<p>We say only what survives a skeptical engineer on Hacker News.</p>
+
+<table>
+<thead><tr><th>Claim</th><th>How we say it honestly</th></tr></thead>
+<tbody>
+<tr><td>Fewer tokens</td><td><strong>~10-100x, dominated by the "return only the slice" architecture lever</strong>; serialization is a ~1.4-2.5x residual; caching cuts cost, not token count, and is reported separately. We publish <em>Bonfire's own measured number</em>, never a literature multiplier.</td></tr>
+<tr><td>More accurate</td><td>Scoped to extraction/lookup, not open-ended diagnosis (retrieval has a hard reasoning ceiling there). Proven by BTAB, citing the benchmark that disagrees with us.</td></tr>
+<tr><td>Cited</td><td>Citation <em>precision</em> is structural (every fact carries a FHIR id + JSONB path + audit hash). Citation <em>recall</em> is measured, not "1.0 by construction." Cited proves provenance, not clinical correctness.</td></tr>
+<tr><td>The moat</td><td>Not the token savings (every technique is MIT-licensed; an incumbent could copy them in a sprint). The moat is the integrated governed-citation contract + DX + the open proof, genuinely Apache-2.0 where Aidbox (~$1,900/mo+) and Canvas (~$3,950/mo+) paywall at PHI.</td></tr>
+<tr><td>Not a Business Associate</td><td>"Structured so Bonfire is not a Business Associate, pending counsel review" — the BYOC agent runs privileged code under a customer IAM role, which is a legal determination.</td></tr>
+</tbody>
+</table>
+
+<h2 id="architecture">Architecture in one picture</h2>
+
+<div class="sh-callout">
+<strong>One idea.</strong> bonfireDB is a governed read-and-act path the agent is forced through. We
+control the projection (<strong>accuracy</strong>), the gate (<strong>safety</strong>), and the audit
+(<strong>proof</strong>). That integrated depth is what a competitor cannot clone in a week.
+</div>
+
+<pre><code>            WRITE (one atomic tx)                         READ (agent / app / SDK)
+  typed primitive --map--> FHIR R4 -----+              +--> typed projections (vd_*)  &lt;5ms
+                                        |              |
+   INSERT fhir_resources (JSONB canon) -+--> COMMIT ---+--> Cited Context Projection (compact, span-cited)
+   INSERT history + write_inputs        |              |
+   UPSERT typed projection (same tx)    |              +--> FHIR search (spidx) / 1-call FHIR export
+   INSERT outbox --(async)--> embeddings, reindex      |
+                                                       +--> typed MCP tools (propose-only, governed)
+
+  every row: practice_id + RLS fail-closed   |   every read: ABAC policy receipt + hash-chained audit</code></pre>
+
+<ul>
+<li><strong>FHIR is the source of truth; the primitive is just the write API.</strong> Keep the raw
+typed payload (<code>write_inputs</code>) so we can re-derive FHIR when the mapping improves. One write
+path, never a dual write.</li>
+<li><strong>Read off indexed projections, not JSONB scans</strong> (the Medplum/HAPI model; Aidbox-style
+JSONB-direct search does not scale). The read side is droppable and rebuildable from canonical FHIR.</li>
+<li><strong>The agent reads the Cited Context Projection, never a 50KB FHIR bundle.</strong> Raw FHIR is
+an explicit, rarely-needed escape hatch.</li>
+</ul>
+
+<h2 id="proof">The proof: BTAB (Bonfire Token + Accuracy Bench)</h2>
+
+<p>The benchmark <em>is</em> the marketing artifact. The audience fact-checks; intellectual honesty is
+the GTM moat.</p>
+
+<ul>
+<li><strong>Three arms of identical content:</strong> raw FHIR R4 bundle (the foil), compact FHIR JSON,
+and the Bonfire Cited Context Projection.</li>
+<li><strong>Named tokenizer per model</strong> (state model + tokenizer or it is not reproducible).
+Token delta runs <strong>offline with zero keys</strong>; the accuracy arm needs the reader's own model
+keys and runs on <code>main</code> — we say so plainly.</li>
+<li><strong>Honest metrics:</strong> median tokens/query, task accuracy on a fixed golden-query suite,
+citation precision/recall, and the primary metric <em>accuracy per 1K tokens</em>.</li>
+<li><strong>Anti-contamination:</strong> SHA-256 pre-registration of held-out splits; we cite the
+benchmark that disagrees with us; we never quote someone else's headline multiplier as ours.</li>
+<li><strong>v0 scope:</strong> synthetic corpus only (the MIMIC benchmark is post-launch and never goes
+through a cloud sandbox).</li>
+</ul>
+
+<h2 id="competition">Competitors</h2>
+
+<table>
+<thead><tr><th></th><th>Medplum</th><th>Aidbox</th><th>Supabase + own schema</th><th>bonfireDB</th></tr></thead>
+<tbody>
+<tr><td>Shape</td><td>FHIR-first platform</td><td>FHIR-first server</td><td>Generic Postgres BaaS</td><td><strong>App-first, FHIR underneath, agent-native</strong></td></tr>
+<tr><td>Open / cost</td><td>Apache-2.0</td><td>Closed, ~$1,900/mo+</td><td>OSS core + cloud</td><td><strong>Apache-2.0, run real PHI on your own infra for $0</strong></td></tr>
+<tr><td>Agent layer</td><td>MCP + propose-only (raw passthrough)</td><td>MCP alpha</td><td>None</td><td><strong>Cited token-lean projection + propose-only + open benchmark</strong></td></tr>
+<tr><td>You own the box?</td><td>Self or their cloud</td><td>License + run</td><td>Self-host or their cloud</td><td><strong>Your own cloud (BYOC), vendor not a BA</strong></td></tr>
+<tr><td>The proof</td><td>Production logos</td><td>FHIR depth</td><td>HIPAA cert</td><td><strong>An open, reproducible token+accuracy benchmark</strong></td></tr>
+</tbody>
+</table>
+
+<p>We do not beat them as a FHIR server. We win on shape, timing, the agent layer, and an open proof.
+"We have an MCP server" and "we have a typed SDK" are table stakes by mid-2026; a demonstrable outcome
+backed by a public eval is not.</p>
+
+<h2 id="gtm">GTM &amp; community</h2>
+
+<ul>
+<li><strong>Positioning is the highest-leverage lever.</strong> Supabase went 8 to 800 databases in 72
+hours from one tagline change. Lead with the founder-pain sentence — <em>"my saddest day was the day I
+had to learn FHIR to ship a health app"</em> — and the measurable outcome.</li>
+<li><strong>Two launch moments:</strong> (1) Show HN of the OSS engine + the benchmark as a problem
+signal, then (2) a packaged Launch Week with a frictionless synthetic free tier for the adoption spike.</li>
+<li><strong>The container is the funnel, not the product.</strong> Free <code>docker compose up</code>
+on synthetic data drives adoption; we never charge the self-hoster.</li>
+<li><strong>Go to production with named design partners before chasing stars</strong> (Medplum:
+"production before 20 stars"). CTA: <em>"Give us one painful AI-health workflow. We map it into Bonfire
+in 48 hours. If it works, become a design partner."</em></li>
+<li><strong>Community as product:</strong> Discord as the low-shame support venue, merge PRs fast, a paid
+contributor program, good-first-issues around the SQL-on-FHIR runner and governance primitives,
+LLM-consumable docs, and being the default backend AI code-gen tools scaffold.</li>
+<li><strong>Measure weekly-active projects, time-to-first-PR, and Docker pulls — not stars.</strong></li>
+</ul>
+
+<h2 id="money">Business model &amp; pricing</h2>
+
+<p><strong>Open core + a managed control plane, deployed BYOC.</strong> The code is free; we charge for
+the ongoing <em>operation and assurance</em> that keeps it running and correct. PHI stays in the
+customer's cloud, so we are structured not to be a Business Associate (pending counsel).</p>
+
+<table>
+<thead><tr><th>Plan</th><th>Price</th><th>For</th><th>What you pay for</th></tr></thead>
+<tbody>
+<tr><td><strong>OSS self-host</strong></td><td>Free (Apache-2.0)</td><td>builders evaluating or self-running</td><td>The code. You run it. Full ABAC + audit + the projection are in the free core.</td></tr>
+<tr><td><strong>Founding pilot</strong></td><td>$2.5-5k one-time (30 days)</td><td>first design partners</td><td>We install Bonfire and ship one cited, governed workflow in 7 days (synthetic/de-identified). Refunded if the acceptance test fails.</td></tr>
+<tr><td><strong>Startup</strong> (managed BYOC)</td><td>$750-1,500 / mo</td><td>a funded startup going to production</td><td>Managed ops in your cloud (upgrades, migrations, PITR, monitoring) + email support.</td></tr>
+<tr><td><strong>Growth</strong> (managed BYOC)</td><td>$2-8k / mo (metered)</td><td>scaling across orgs</td><td>Everything in Startup + the eval harness, more connectors, SSO, priority support.</td></tr>
+<tr><td><strong>Enterprise</strong></td><td>$30-150k+ / yr</td><td>larger digital-health plays</td><td>Dedicated deployment, SLA, SOC 2, security-review support, optional fully-managed (we hold the BAA).</td></tr>
+</tbody>
+</table>
+
+<div class="sh-callout info">
+<strong>Honest economics.</strong> BYOC removes the "trust an unproven startup with PHI" objection, but
+it forecloses the managed-cloud revenue line that funds most OSS-infra companies, and every customer is
+a single-tenant deployment to support. Blended gross margin is ~70%, not the ~87% infra-only figure.
+We never gate the Apache-2.0 core or weaken authorization on a billing event; the paid surface is
+assurance (managed ops, compliance + terminology upkeep, conformance cert, eval-as-a-service, SLAs).
+License stays Apache-2.0 (FSL only if cloud re-hosting becomes a real threat; AGPL is avoided).
+</div>
+
+<h2 id="compliance">Compliance (honest)</h2>
+
+<ul>
+<li><strong>Runs in your cloud, under your BAA</strong> — no vendor BAA to negotiate.</li>
+<li><strong>HIPAA-ready, in code</strong> — ships the 45 CFR 164.312 safeguards: RLS → access control,
+hash-chained log → audit + integrity, identity → authentication, TLS → transmission. Designed to the
+January 2025 HIPAA NPRM floor (AES-256, TLS 1.3, MFA-ready, immutable audit).</li>
+<li><strong>FDA posture</strong> — cited context + propose-only + a clinician who can independently
+review the basis maps onto the 2026 Non-Device CDS safe harbor. We warn builders that risk scores can
+cross into device territory.</li>
+<li><strong>You own compliance; we remove the grunt work</strong> — never "compliant out of the box."
+SOC 2 + a fully-managed BAA mode are the enterprise tier.</li>
+</ul>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+
+<div class="sh-callout danger">
+<strong>1. The accuracy/token claim is unproven until measured.</strong> Build BTAB early (days 9-11)
+and publish Bonfire's own number with a stated baseline + tokenizer. If we cannot beat the baseline,
+fix the projection before marketing it.
+</div>
+<div class="sh-callout danger">
+<strong>2. The primitive-to-FHIR mapping is the hard 80%.</strong> Wrong FHIR is a compliance failure,
+and "lossless" is a moving target (US Core + terminology churn). The scribe beachhead keeps it to ~8
+resources; the loss-ledger + golden round-trip fixtures keep it honest.
+</div>
+<div class="sh-callout danger">
+<strong>3. A cross-tenant leak is one dead company.</strong> RLS fail-closed on every row from row
+zero (SQL, vector, agent), plus ABAC policy receipts. Retrofitting security is how you leak — so we
+build it first, not last.
+</div>
+<div class="sh-callout danger">
+<strong>4. Market &amp; substitutes.</strong> "Supabase + my own schema" is the path of least
+resistance until interop is forced — counter with "you will regret skipping FHIR at month 12" and a
+quantified rewrite cost. The greenfield-scribe market is consolidating — so we sell the backend the
+next wave of agents needs, and add the import path so we are useful to existing-FHIR teams too.
+</div>
+
+<h2 id="decisions">Open decisions</h2>
+
+<p>Genuine founder calls the research could not make for us. Resolve together; tick as we lock each one.</p>
+
+<div data-sh-app data-sh-state='{
+  "decisions": [
+    {"q":"Wedge = \"Prove it\": cited projection + open benchmark","done":true},
+    {"q":"Greenfield from scratch; current scaffold is disposable","done":true},
+    {"q":"14-day MVP sprint to a launchable OSS release + published number","done":true},
+    {"q":"License: Apache-2.0 core (FSL only if re-hosting becomes a threat)","done":false},
+    {"q":"Name: keep bonfireDB","done":false},
+    {"q":"Default LLM + embedding provider for the reference app + BTAB accuracy arm","done":false},
+    {"q":"Import path (existing-FHIR hedge): in the 14 days, or right after","done":false},
+    {"q":"Apply to YC Fall 2026 (deadline ~July 27)","done":false},
+    {"q":"Commission the Business-Associate legal review before launch","done":false}
+  ]
+}'>
+  <p><strong data-sh-text="count(decisions where done) + ' of ' + count(decisions) + ' locked'"></strong></p>
+  <ul data-sh-repeat="decisions" data-sh-as="d">
+    <li><input type="checkbox" data-sh-bind="d.done"> <span data-sh-text="d.q"></span></li>
+  </ul>
+</div>
+
+<h2 id="cta">CTA</h2>
+
+<div class="sh-callout success">
+<strong>Give us one painful AI-health workflow.</strong> We will map it into Bonfire in 48 hours. If it
+works, become a design partner. The code is free forever; what we sell is keeping it running, correct,
+and compliant in your own cloud.
+</div>
+
+<hr>
+
+<p><em>Live page: tick boxes, watch the counters move, and select any paragraph to edit it by talking
+to your CLI.</em></p>

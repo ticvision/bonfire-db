@@ -1,18 +1,59 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 build/
+.turbo/
+
+# TypeScript incremental build state
+*.tsbuildinfo
+
+# Test & coverage artifacts
 coverage/
 test-results/
 playwright-report/
-.DS_Store
+
+# Environment & secrets — never commit
 .env
 .env.*
 !.env.example
+
+# Data exports & private fixtures — never commit PHI
+exports/
+fixtures/private/
+
+# Logs & captured traces
 *.log
 *.trace
 *.har
-*.zip
-*.tar
-*.tar.gz
-exports/
-fixtures/private/
+
+# Editor & OS noise
+.DS_Store
+.idea/
+
+# Local agent / tooling state
+.gstack/
+
+# Key & certificate material — never commit
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+
+# Data dumps & tabular exports — PHI risk; track synthetic seed/migrations explicitly
+*.csv
+*.tsv
+*.sql
+*.parquet
+*.ndjson
+*.xlsx
+!drizzle/**/*.sql
+!seed/**/*.sql
+
+# Other credential files
+.envrc
+*credentials*
+secrets.*
