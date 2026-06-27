@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gate: [typecheck, lint, format, structural, boundaries]
+        gate: [typecheck, lint, format, structural, boundaries, suppressions]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -75,6 +75,15 @@ jobs:
                 bunx depcruise $DIRS --config .dependency-cruiser.cjs
               fi
               ;;
+            suppressions)
+              # No inline semgrep suppressions in source (the bypass eslint's
+              # noInlineConfig + ban-ts-comment already close for eslint/tsc).
+              if grep -rn 'nosemgrep' --include='*.ts' --include='*.tsx' --include='*.mts' --include='*.cts' loop packages apps 2>/dev/null; then
+                echo "inline // nosemgrep suppressions are forbidden"
+                exit 1
+              fi
+              echo "no inline semgrep suppressions"
+              ;;
           esac
 
   # ---------------------------------------------------------------------------
@@ -110,9 +119,10 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # BLOCKING — static analysis (Semgrep). Inline suppressions are DISABLED
-  # (--disable-nosemgrep) to match the eslint no-inline-config posture, and
-  # --strict fails on unparseable files instead of silently skipping them.
+  # BLOCKING — static analysis (Semgrep) using the pinned, in-repo ruleset only
+  # (deterministic; no network registry fetch). --strict fails on unparseable files
+  # instead of silently skipping them. Inline `// nosemgrep` suppressions are blocked
+  # by the `static / suppressions` gate, not a (non-existent) CLI flag.
   # ---------------------------------------------------------------------------
   semgrep:
     name: semgrep
@@ -127,10 +137,8 @@ jobs:
           set -eu
           semgrep scan \
             --config semgrep.yml \
-            --config p/default \
             --error \
             --strict \
-            --disable-nosemgrep \
             --metrics off \
             --exclude node_modules \
             --exclude dist \

@@ -44,10 +44,10 @@ regex = '''(?i)postgres(ql)?:\/\/[^:\/\s]+:[^@\/\s]+@[^\/\s:]+'''
 keywords = ["postgres://", "postgresql://"]
 
   [[rules.allowlists]]
-  description = "Synthetic local demo credentials are allowed"
+  description = "Local-only connection strings are synthetic: a host of localhost / 127.0.0.1 / the 'postgres' compose service is never a production DB, so any embedded credential is a local dev placeholder."
   regexTarget = "match"
   regexes = [
-    '''(?i)postgres(ql)?:\/\/(bonfire|postgres):(bonfire|postgres)@(localhost|127\.0\.0\.1|postgres)''',
+    '''(?i)postgres(ql)?:\/\/[^@\s]+@(localhost|127\.0\.0\.1|postgres)\b''',
   ]
 
 # ---------------------------------------------------------------------------
