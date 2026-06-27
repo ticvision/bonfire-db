@@ -5,7 +5,7 @@
  * writer, the on-disk bytes diverge from `generateFiles(agentDefs)` and the check
  * fails. Comparison is byte-for-byte; a missing file is drift too.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Result } from "../contracts/result.js";
@@ -52,8 +52,12 @@ export function findRepoRoot(fromUrl: string): string {
  * drifted (mismatched or missing) paths. Recoverable, so it returns a Result.
  */
 export function checkAgentDrift(repoRoot: string): Result<{ readonly ok: true }, DriftFailure> {
+  const expected = generateFiles(agentDefs);
+  const expectedPaths = new Set(expected.map((file) => file.path));
   const drifted: DriftedFile[] = [];
-  for (const file of generateFiles(agentDefs)) {
+
+  // Forward: every generated file must exist on disk and match byte-for-byte.
+  for (const file of expected) {
     const absolute = join(repoRoot, file.path);
     if (!existsSync(absolute)) {
       drifted.push({ path: file.path });
@@ -64,5 +68,27 @@ export function checkAgentDrift(repoRoot: string): Result<{ readonly ok: true },
       drifted.push({ path: file.path });
     }
   }
+
+  // Reverse: an ORPHAN generated file on disk (no longer produced by any def,
+  // e.g. a renamed/removed agent) is drift too — otherwise it lingers, stale.
+  for (const [dir, ext] of [
+    [".claude/agents", ".md"],
+    [".codex/agents", ".toml"]
+  ] as const) {
+    const absDir = join(repoRoot, dir);
+    if (!existsSync(absDir)) {
+      continue;
+    }
+    for (const name of readdirSync(absDir)) {
+      if (!name.endsWith(ext)) {
+        continue;
+      }
+      const rel = `${dir}/${name}`;
+      if (!expectedPaths.has(rel)) {
+        drifted.push({ path: rel });
+      }
+    }
+  }
+
   return drifted.length > 0 ? err({ drifted }) : ok({ ok: true });
 }

@@ -1,8 +1,8 @@
 ---
-name: bonfire-planner
-description: Read-only planner that decomposes a complex slice contract into an ordered, independently-verifiable tracer-bullet plan (seam, test points, danger checks, first tracer, risks) before the maker writes any code.
+name: "bonfire-planner"
+description: "Read-only planner that decomposes a complex slice contract into an ordered, independently-verifiable tracer-bullet plan (seam, test points, danger checks, first tracer, risks) before the maker writes any code."
 tools: Read, Grep, Glob
-model: inherit
+model: "inherit"
 ---
 
 # bonfire-planner

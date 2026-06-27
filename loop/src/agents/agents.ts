@@ -37,3 +37,10 @@ export const agentDefs: readonly AgentDef[] = [
   validate(securityAuditorDef, "defs/security-auditor.ts"),
   validate(plannerDef, "defs/planner.ts")
 ];
+
+// Names map 1:1 to generated filenames; a duplicate would silently overwrite
+// another agent's .claude/.codex output. Fail loudly at load (programmer error).
+const agentNames = agentDefs.map((def) => def.name);
+if (new Set(agentNames).size !== agentNames.length) {
+  throw new Error(`Duplicate agent name(s) in the registry: ${agentNames.join(", ")}`);
+}

@@ -29,7 +29,10 @@ export const agentDefSchema = z.strictObject({
     (value) => !/[\r\n]/.test(value),
     "description must be a single line (no newline)"
   ),
-  claudeTools: z.array(nonEmptyString).min(1),
+  claudeTools: z
+    .array(nonEmptyString)
+    .min(1)
+    .refine((tools) => new Set(tools).size === tools.length, "claudeTools must be unique"),
   claudeModel: nonEmptyString,
   codexReasoningEffort: nonEmptyString,
   codexSandbox: z.enum(["workspace-write", "read-only"]),

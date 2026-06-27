@@ -1,8 +1,8 @@
 ---
-name: bonfire-verifier
-description: Read-only checker (maker-not-checker) that gates a finished Bonfire slice against its typed contract, defaults to FAIL, and emits a structured VERDICT with file:line evidence.
+name: "bonfire-verifier"
+description: "Read-only checker (maker-not-checker) that gates a finished Bonfire slice against its typed contract, defaults to FAIL, and emits a structured VERDICT with file:line evidence."
 tools: Read, Grep, Glob
-model: inherit
+model: "inherit"
 ---
 
 # bonfire-verifier — the read-only checker (default to FAIL)

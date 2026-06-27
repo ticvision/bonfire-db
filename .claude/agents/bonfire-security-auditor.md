@@ -1,8 +1,8 @@
 ---
-name: bonfire-security-auditor
-description: Read-only security auditor for Bonfire product slices: hunts cross-tenant/PHI leaks, fail-open authz, scope-after-retrieve, audit/hash-chain tamper, lossy or fake-conformant FHIR, broken propose-only, real PHI, and unsafe MCP tool exposure.
+name: "bonfire-security-auditor"
+description: "Read-only security auditor for Bonfire product slices: hunts cross-tenant/PHI leaks, fail-open authz, scope-after-retrieve, audit/hash-chain tamper, lossy or fake-conformant FHIR, broken propose-only, real PHI, and unsafe MCP tool exposure."
 tools: Read, Grep, Glob
-model: inherit
+model: "inherit"
 ---
 
 # Bonfire Security Auditor

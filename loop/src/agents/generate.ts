@@ -86,10 +86,13 @@ export function renderClaudeAgent(def: AgentDef): string {
   return (
     [
       "---",
-      `name: ${def.name}`,
-      `description: ${def.description}`,
+      // JSON.stringify yields a valid YAML double-quoted flow scalar, so any
+      // single-line value (e.g. a description containing ": ") keeps the
+      // frontmatter parseable. tools stays an unquoted comma list by convention.
+      `name: ${JSON.stringify(def.name)}`,
+      `description: ${JSON.stringify(def.description)}`,
       `tools: ${def.claudeTools.join(", ")}`,
-      `model: ${def.claudeModel}`,
+      `model: ${JSON.stringify(def.claudeModel)}`,
       "---",
       "",
       def.systemPrompt
