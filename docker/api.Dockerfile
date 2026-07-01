@@ -9,7 +9,11 @@ COPY package.json bun.lock tsconfig.json tsconfig.base.json ./
 COPY packages/core/package.json packages/core/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY loop/package.json loop/package.json
-RUN bun install --frozen-lockfile --production
+# Hoisted linker: bun 1.3's default isolated linker scatters per-workspace
+# node_modules symlink dirs that don't survive the single COPY below; hoisted
+# keeps everything under root node_modules (workspace:* @bonfire/core still
+# resolves via the root workspace link to /app/packages/core, copied below).
+RUN bun install --frozen-lockfile --production --linker hoisted
 
 FROM oven/bun:1.3.14-slim AS runtime
 WORKDIR /app
