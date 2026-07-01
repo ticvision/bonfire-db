@@ -12,18 +12,17 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import type { BonfireError, Result } from "../result.js";
 import { err, ok } from "../result.js";
+import { devDatabaseUrl } from "./env.js";
 
 export type MigrateErrorCode = "MIGRATION_FAILED";
 
-const DEFAULT_MIGRATE_DATABASE_URL =
-  "postgres://postgres:bonfire-dev-only-superuser-pw@127.0.0.1:5432/bonfire";
 const END_TIMEOUT_SECONDS = 5;
 
 /** Apply all pending migrations from drizzle/; idempotent (re-run is a no-op). */
 export async function runMigrations(
   databaseUrl?: string
 ): Promise<Result<{ readonly applied: true }, BonfireError<MigrateErrorCode>>> {
-  const url = databaseUrl ?? process.env.MIGRATE_DATABASE_URL ?? DEFAULT_MIGRATE_DATABASE_URL;
+  const url = databaseUrl ?? process.env.MIGRATE_DATABASE_URL ?? devDatabaseUrl("migrate");
   const sql = postgres(url, { max: 1 });
   try {
     await migrate(drizzle(sql), { migrationsFolder: "drizzle" });
